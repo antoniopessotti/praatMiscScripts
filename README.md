@@ -6,7 +6,7 @@ This repository contains a slowly growing number of scripts to conduct
 miscellaneous tasks for which I've missed existing scripts. Please do send me
 your comments, suggestions or ideas (you can find my contact details [here][]).
 
-## Script included
+## Scripts included
 
 * toPraatColour: Two procedures for Praat to convert colours in hexadecimal
 or RGB format into Praat's colour format. The procedures are meant to be
