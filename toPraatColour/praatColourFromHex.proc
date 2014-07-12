@@ -1,0 +1,58 @@
+procedure praatColourFromHex (hexadecimal$)
+	
+	# Testing integrity of hexadecimal number and terminating the script if a problem is found.
+	hex$ = replace$ (hexadecimal$, "#", "", 0)
+	has_illegal = index_regex (hex$, "[^0-9abcdefABCDEF#]")
+	length = length (hex$)
+	if has_illegal > 0
+		illegal_character$ = mid$ (hex$, has_illegal, 1)
+		exit Your hexadecimal number ('hex$') contains a non-hexadecimal character ('illegal_character$') in position: 'has_illegal'.'newline$'
+	elsif length <> 6
+		exit Your hexadecimal number ('hex$') has 'length' characters instead of the required 6.'newline$'
+	endif
+	
+	# Storing the pairs of hexadecimal code just because.
+	hex_1$ = left$ (hex$, 2)
+	hex_2$ = mid$ (hex$, 3, 2)
+	hex_3$ = right$ (hex$, 2)
+
+	# Parse the hexadecimal string.
+	for i from 1 to 6
+		current_char$ = mid$ (hex$, i, 1)
+		# Convert hexadecimal characters to decimal.
+		if current_char$ == "a" or current_char$ == "A"
+			value = 10
+		elsif current_char$ == "b" or current_char$ == "B"
+			value = 11
+		elsif current_char$ == "c" or current_char$ == "C"
+			value = 12
+		elsif current_char$ == "d" or current_char$ == "D"
+			value = 13
+		elsif current_char$ == "e" or current_char$ == "E"
+			value = 14
+		elsif current_char$ == "f" or current_char$ == "F"
+			value = 15
+		else
+			value = number (current_char$)
+		endif
+		
+		# Converting each digit of the pairs of numbers to decimal by using: decimal * (16 ^ position). If hexadecimal number was F73 = (15 * (16 ^ 2)) + (7 * (16 ^ 1)) + (3 * (16 ^ 0)). Notice that the hexadecimal colour comes with 6 characters, but the three encoded colours come in paris of 2.
+		remainder = i mod 2
+		if remainder == 1
+			partial_decimal [i] = value * (16 ^ 1)
+		elsif remainder == 0
+			partial_decimal [i] = value * (16 ^ 0)
+		endif
+	endfor
+
+	# Adding the decimal values for each pair to convert to RGB:
+	rgb_R = partial_decimal [1] + partial_decimal [2]
+	rgb_G = partial_decimal [3] + partial_decimal [4]
+	rgb_B = partial_decimal [5] + partial_decimal [6]
+
+	# Convert from RGB to Praat's colour format:
+	praat_red = rgb_R / 255
+	praat_green = rgb_G / 255
+	praat_blue = rgb_B / 255
+	
+endproc
