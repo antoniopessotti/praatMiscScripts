@@ -1,6 +1,17 @@
+# Procedure "praatColourFromHex.proc". v.0.1 - Mauricio Figueroa (www.mauriciofigueroa.cl)
+# 
+# Procedure to convert hexadecimal colours (with or without initial hash) into RGB and then
+# into Praat RGB-formatted colours. The input variable has to be provided as a string variable
+# between quotation marks, unless a previous string variable has been assigned.
+# 
+# The output corresponds to three variables containing Praat-formatted RGB colours:
+# "praat_red", "praat_green" and "praat_blue". These variables can be used outside the
+# procedure. To the best of my knowledge, all the commands that take Praat RBG colours as
+# arguments will require the use of variable substitution, because they take strings.
+
 procedure praatColourFromHex (hexadecimal$)
 	
-	# Testing integrity of hexadecimal number and terminating the script if a problem is found.
+	# Testing integrity of hexadecimal number (characters and length) and terminating the script if a problem is found.
 	hex$ = replace$ (hexadecimal$, "#", "", 0)
 	has_illegal = index_regex (hex$, "[^0-9abcdefABCDEF#]")
 	length = length (hex$)
@@ -16,10 +27,10 @@ procedure praatColourFromHex (hexadecimal$)
 	hex_2$ = mid$ (hex$, 3, 2)
 	hex_3$ = right$ (hex$, 2)
 
-	# Parse the hexadecimal string.
+	# Loop to parse hexadecimal string.
 	for i from 1 to 6
 		current_char$ = mid$ (hex$, i, 1)
-		# Convert hexadecimal characters to decimal.
+		# Convert hexadecimal non-numerical characters to decimal numbers.
 		if current_char$ == "a" or current_char$ == "A"
 			value = 10
 		elsif current_char$ == "b" or current_char$ == "B"
@@ -36,7 +47,7 @@ procedure praatColourFromHex (hexadecimal$)
 			value = number (current_char$)
 		endif
 		
-		# Converting each digit of the pairs of numbers to decimal by using: decimal * (16 ^ position). If hexadecimal number was F73 = (15 * (16 ^ 2)) + (7 * (16 ^ 1)) + (3 * (16 ^ 0)). Notice that the hexadecimal colour comes with 6 characters, but the three encoded colours come in paris of 2.
+		# Converting each digit of the pairs of numbers to decimal by using: decimal * (16 ^ position). If hexadecimal number was F73, then the calculations would be: (15 * (16 ^ 2)) + (7 * (16 ^ 1)) + (3 * (16 ^ 0)). Notice that the hexadecimal colour contains 6 characters, but the three encoded colours come in pairs of 2. The values obtained are stored in a numerical array (partial_decimal).
 		remainder = i mod 2
 		if remainder == 1
 			partial_decimal [i] = value * (16 ^ 1)
@@ -45,12 +56,12 @@ procedure praatColourFromHex (hexadecimal$)
 		endif
 	endfor
 
-	# Adding the decimal values for each pair to convert to RGB:
+	# Adding the decimal values for each pair to convert to RGB.
 	rgb_R = partial_decimal [1] + partial_decimal [2]
 	rgb_G = partial_decimal [3] + partial_decimal [4]
 	rgb_B = partial_decimal [5] + partial_decimal [6]
 
-	# Convert from RGB to Praat's colour format:
+	# Convert from RGB to Praat-formatted RGB colour:
 	praat_red = rgb_R / 255
 	praat_green = rgb_G / 255
 	praat_blue = rgb_B / 255
