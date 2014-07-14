@@ -1,21 +1,6 @@
 # Written by Mauricio Figueroa (www.mauriciofigueroa.cl)
 # v.0.1 - 14th July 2014
 # 
-# Procedure to convert hexadecimal colours (with or without initial hash) into
-# RGB and then into Praat RGB-formatted colours. The input variable has to be
-# provided as a string variable between quotation marks, unless a previous
-# string variable has been assigned.
-# 
-# The output corresponds to three local variables containing Praat-formatted RGB
-# colours: ".r", ".g" and ".b". These variables can be used outside the
-# procedure via: "hex2rgb.r".
-#
-# The color in the format required by praat can be accessed with a reference to
-# ".rgb$", which can be used in any(?) of the commands that use colors. For
-# example, to change the colour of the pen in a Praat draw, you can use:
-#
-#   Colour: hex2rgb.rgb$
-#
 # This script is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation, either version 3 of the License, or (at your option) any later
@@ -24,8 +9,15 @@
 # A copy of the GNU General Public License is available at 
 # <http://www.gnu.org/licenses/>.
 
+# Procedure to convert hexadecimal colours (with or without initial hash) into
+# RGB color codes (integers in the range 0 - 255). Input is the number as a
+# string (eg. "#9bcfab").
+# 
+# The three components are stored in the local variables ".r", ".g" and ".b" for
+# the red, green and blue respectively. These variables can be used outside the
+# procedure via: "hex2rgb.r".
+#
 procedure hex2rgb (.hex$)
-  
   # Removing hash symbol, look for illegal characters and query length of
   # hexadecimal.
   .hex$ = replace$ (.hex$, "#", "", 0)
@@ -38,7 +30,7 @@ procedure hex2rgb (.hex$)
     .bad_char$ = mid$ (.hex$, .has_illegal, 1)
     exitScript: "Your hexadecimal number ('.hex$') contains an illegal
       ... character ('.bad_char$') in position: '.has_illegal'.'newline$'"
-  elsif .length != 6
+  elsif .length <> 6
     exitScript: "Your hexadecimal number ('.hex$') has '.length' characters
       ... instead of the required 6.'newline$'"
   endif
@@ -61,9 +53,45 @@ procedure hex2rgb (.hex$)
   endfor
 
   # Adding decimal values for each pair to convert to RGB.
-  .r = (.prov_dec [1] + .prov_dec [2]) / 255
-  .g = (.prov_dec [3] + .prov_dec [4]) / 255
-  .b = (.prov_dec [5] + .prov_dec [6]) / 255
-  .rgb$ = "{" + string$(.r) + "," + string$(.g) + "," + string$(.b) + "}"
+  .r = (.prov_dec [1] + .prov_dec [2])
+  .g = (.prov_dec [3] + .prov_dec [4])
+  .b = (.prov_dec [5] + .prov_dec [6])
+endproc
 
+# Procedure to convert colours in RGB format (integers in the range 0 - 255) to
+# the color format expected by Praat. Input is the three RGB components, in
+# the order suggested by the acronym (eg. red, green, blue).
+# 
+procedure rgb2praat (.r, .g, .b)
+  # Testing number format.
+  .rgb = .r + .g + .b
+  if .rgb < 0 or .rgb > 255
+    exitScript: "One of the provided values (red: '.r', green: '.g', blue: '.b')
+      ... is either smaller than 0 or larger than 255.'newline$'"
+  endif
+
+  # Convert original RGB to Praat's RGB colour format.
+  .r = .r / 255
+  .g = .g / 255
+  .b = .b / 255
+  .color$ = "{" + string$(.r) + "," + string$(.g) + "," + string$(.b) + "}"
+endproc
+
+# Procedure to convert hexadecimal colours (with or without initial hash) into
+# the color format expected by Praat. Input is the number as a string
+# (eg. "#9bcfab").
+# 
+# The color in the format required by praat can be accessed with a reference to
+# ".rgb$", which can be used in any(?) of the commands that use colors. For
+# example, to change the colour of the pen in a Praat draw, you can use:
+#
+#     Colour: hex2praat.rgb$
+#
+procedure hex2praat (.hex$)
+  @hex2rgb(.hex$)
+  @rgb2praat(hex2rgb.r, hex2rgb.g, hex2rgb.b)
+  .r = rgb2praat.r
+  .g = rgb2praat.g
+  .b = rgb2praat.b
+  .color$ = rgb2praat.color$
 endproc
