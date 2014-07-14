@@ -1,81 +1,69 @@
 # Written by Mauricio Figueroa (www.mauriciofigueroa.cl)
 # v.0.1 - 14th July 2014
 # 
-# Procedure to convert hexadecimal colours (with or without initial hash) into RGB and then
-# into Praat RGB-formatted colours. The input variable has to be provided as a string variable
-# between quotation marks, unless a previous string variable has been assigned.
+# Procedure to convert hexadecimal colours (with or without initial hash) into
+# RGB and then into Praat RGB-formatted colours. The input variable has to be
+# provided as a string variable between quotation marks, unless a previous
+# string variable has been assigned.
 # 
-# The output corresponds to three local variables containing Praat-formatted RGB colours:
-# ".praat_red", ".praat_green" and ".praat_blue". These variables can be used outside the
-# procedure via: "praatColourFromHex.praat_red".
+# The output corresponds to three local variables containing Praat-formatted RGB
+# colours: ".r", ".g" and ".b". These variables can be used outside the
+# procedure via: "hex2rgb.r".
 #
-# To the best of my knowledge, all the commands that take Praat RBG colours as arguments
-# will require the use of variable substitution in a string. For example, to change the
-# colour of the pen in a Praat draw, you can use:
+# The color in the format required by praat can be accessed with a reference to
+# ".rgb$", which can be used in any(?) of the commands that use colors. For
+# example, to change the colour of the pen in a Praat draw, you can use:
 #
-#		Colour: "{'praatColourFromHex.praat_red', 'praatColourFromHex.praat_green',
-#		...'praatColourFromHex.praat_blue'}"
+#   Colour: hex2rgb.rgb$
 #
-# This script is free software: you can redistribute it and/or modify it under the terms of
-# the GNU General Public License as published by the Free Software Foundation, either version
-# 3 of the License, or (at your option) any later version.
+# This script is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
 #
 # A copy of the GNU General Public License is available at 
 # <http://www.gnu.org/licenses/>.
 
-procedure praatColourFromHex (.hexadecimal$)
-	
-	# Removing hash symbol, look for illegal characters and query length of hexadecimal.
-	.hex$ = replace$ (.hexadecimal$, "#", "", 0)
-	.has_illegal = index_regex (.hex$, "[^0-9abcdefABCDEF#]")
-	.length = length (.hex$)
-	
-	# If problem is found from previous tests, terminate script.
-	if .has_illegal <> 0
-		.faul_character$ = mid$ (.hex$, .has_illegal, 1)
-		exitScript: "Your hexadecimal number ('.hex$') contains a non-hexadecimal character ('.faul_character$') in position: '.has_illegal'.'newline$'"
-	elsif .length <> 6
-		exitScript: "Your hexadecimal number ('.hex$') has '.length' characters instead of the required 6.'newline$'"
-	endif
-	
-	# Parsing hexadecimal string.
-	for .ch from 1 to 6
-		.current$ = mid$ (.hex$, .ch, 1)
-		
-		# Convert hexadecimal characters to decimals.
-		if .current$ == "a" or .current$ == "A"
-			.value = 10
-		elsif .current$ == "b" or .current$ == "B"
-			.value = 11
-		elsif .current$ == "c" or .current$ == "C"
-			.value = 12
-		elsif .current$ == "d" or .current$ == "D"
-			.value = 13
-		elsif .current$ == "e" or .current$ == "E"
-			.value = 14
-		elsif .current$ == "f" or .current$ == "F"
-			.value = 15
-		else
-			.value = number (.current$)
-		endif
-		
-		# Converting each digit of the pairs of numbers to decimal by using: decimal * (16 ^ position). If the hexadecimal number is "F73", then the calculations would be: (15 * (16 ^ 2)) + (7 * (16 ^ 1)) + (3 * (16 ^ 0)). Notice that the hexadecimal colour contains 6 characters, but the three encoded colours come in pairs of 2. The values obtained are stored in a numerical array.
-		.rmd = .ch mod 2
-		if .rmd == 1
-			.prov_dec [.ch] = .value * (16 ^ 1)
-		elsif .rmd == 0
-			.prov_dec [.ch] = .value * (16 ^ 0)
-		endif
-	endfor
+procedure hex2rgb (.hex$)
+  
+  # Removing hash symbol, look for illegal characters and query length of
+  # hexadecimal.
+  .hex$ = replace$ (.hex$, "#", "", 0)
+  .hex$ = replace_regex$ (.hex$, "(.)", "\L\1", 0)
+  .has_illegal = index_regex (.hex$, "[^0-9abcdef]")
+  .length = length (.hex$)
+  
+  # If problem is found from previous tests, terminate script.
+  if .has_illegal
+    .bad_char$ = mid$ (.hex$, .has_illegal, 1)
+    exitScript: "Your hexadecimal number ('.hex$') contains an illegal
+      ... character ('.bad_char$') in position: '.has_illegal'.'newline$'"
+  elsif .length <> 6
+    exitScript: "Your hexadecimal number ('.hex$') has '.length' characters
+      ... instead of the required 6.'newline$'"
+  endif
+  
+  # Parsing hexadecimal string.
+  for .ch to 6
+    .current$ = mid$ (.hex$, .ch, 1)
+    
+    # Convert hexadecimal characters to decimals.
+    .ix = index("abcdfg", .current$)
+    .value = if .ix then 9 + .ix else number (.current$) fi
+    
+    # Converting each digit of the pairs of numbers to decimal by using:
+    # decimal * (16 ^ position). If the hexadecimal number is "F73", then the
+    # calculations would be: (15 * (16 ^ 2)) + (7 * (16 ^ 1)) + (3 * (16 ^ 0)).
+    # Notice that the hexadecimal colour contains 6 characters, but the three
+    # encoded colours come in pairs of 2. The values obtained are stored in a
+    # numerical array.
+    .prov_dec [.ch] = .value * (16 ^ (.ch mod 2))
+  endfor
 
-	# Adding decimal values for each pair to convert to RGB.
-	.rgb_R = .prov_dec [1] + .prov_dec [2]
-	.rgb_G = .prov_dec [3] + .prov_dec [4]
-	.rgb_B = .prov_dec [5] + .prov_dec [6]
-
-	# Convert from RGB to Praat-formatted RGB colour.
-	.praat_red = .rgb_R / 255
-	.praat_green = .rgb_G / 255
-	.praat_blue = .rgb_B / 255
+  # Adding decimal values for each pair to convert to RGB.
+  .r = (.prov_dec [1] + .prov_dec [2]) / 255
+  .g = (.prov_dec [3] + .prov_dec [4]) / 255
+  .b = (.prov_dec [5] + .prov_dec [6]) / 255
+  .rgb$ = "{" + string$(.r) + "," + string$(.g) + "," + string$(.b) + "}"
 
 endproc
