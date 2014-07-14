@@ -7,14 +7,14 @@
 # 
 # The output corresponds to three local variables containing Praat-formatted RGB colours:
 # ".praat_red", ".praat_green" and ".praat_blue". These variables can be used outside the
-# procedure via: "praatColourFromRGB.praat_red".
+# procedure via: "praatColourFromHex.praat_red".
 #
 # To the best of my knowledge, all the commands that take Praat RBG colours as arguments
 # will require the use of variable substitution in a string. For example, to change the
 # colour of the pen in a Praat draw, you can use:
 #
-#		Colour: "{'praatColourFromRGB.praat_red', 'praatColourFromRGB.praat_green',
-#		...'praatColourFromRGB.praat_blue'}"
+#		Colour: "{'praatColourFromHex.praat_red', 'praatColourFromHex.praat_green',
+#		...'praatColourFromHex.praat_blue'}"
 #
 # This script is free software: you can redistribute it and/or modify it under the terms of
 # the GNU General Public License as published by the Free Software Foundation, either version
