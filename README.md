@@ -13,4 +13,8 @@ or RGB format into Praat's colour format. The procedures are meant to be
 inserted in other scripts via `include name_of_file.proc` and then called by
 `@name_of_procedure (argument_1...)`.
 
+<<<<<<< HEAD
 [here]: http://www.mauriciofigueroa.cl
+=======
+[here]: http://www.mauriciofigueroa.cl
+>>>>>>> 18ec93a16f592af1ede2cbe6ad627960e6098dc8

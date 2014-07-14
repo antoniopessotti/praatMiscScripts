@@ -1,6 +1,17 @@
+# Procedure "praatColourFromRGB.proc". v.0.1 - Mauricio Figueroa (www.mauriciofigueroa.cl)
+# 
+# Procedure to convert RGB colours into Praat RGB-formatted colours. The input variable has
+# to be provided as three numbers between 0 and 255, for red, green and blue (in that order).
+# Instead of the numbers, numerical variables can be used as well.
+#   
+# The output corresponds to three variables containing Praat-formatted RGB colours:
+# "praat_red", "praat_green" and "praat_blue". These variables can be used outside the
+# procedure. To the best of my knowledge, all the commands that take Praat RBG colours as
+# arguments will require the use of variable substitution, because they take strings.
+
 procedure praatColourFromRGB (red, green, blue)
 
-	# Checking that the RBG numbers agree to format:
+	# Testing whether numbers agree to 0 to 255 format.
 	if red < 0 or red > 255
 		exit The value that you provided for "red" ('red') is not between 0 and 255.'newline$'
 	elsif blue < 0 or blue > 255
