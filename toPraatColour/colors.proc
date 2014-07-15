@@ -1,5 +1,7 @@
-# Written by Mauricio Figueroa (www.mauriciofigueroa.cl)
-# v.0.1 - 14th July 2014
+# Written by: Mauricio Figueroa (www.mauriciofigueroa.cl)
+# v.0.2 - 15th July 2014
+# 
+# Also contributed: JJ Atria (www.pinguinorodriguez.cl)
 # 
 # This script is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -10,16 +12,16 @@
 # <http://www.gnu.org/licenses/>.
 
 # Procedure to convert hexadecimal colours (with or without initial hash) into
-# RGB color codes (integers in the range 0 - 255). Input is the number as a
-# string (eg. "#9bcfab").
+# RGB colour codes (integers in the range 0 - 255). Input is the number as a
+# string (e.g. "#9bcfab").
 # 
 # The three components are stored in the local variables ".r", ".g" and ".b" for
 # the red, green and blue respectively. These variables can be used outside the
 # procedure via: "hex2rgb.r".
 #
 procedure hex2rgb (.hex$)
-  # Removing hash symbol, look for illegal characters and query length of
-  # hexadecimal.
+  # Removing hash symbol, convert to lowercase, look for illegal characters and
+  # query length of hexadecimal.
   .hex$ = replace$ (.hex$, "#", "", 0)
   .hex$ = replace_regex$ (.hex$, "(.)", "\L\1", 0)
   .has_illegal = index_regex (.hex$, "[^0-9abcdef]")
@@ -40,7 +42,7 @@ procedure hex2rgb (.hex$)
     .current$ = mid$ (.hex$, .ch, 1)
     
     # Convert hexadecimal characters to decimals.
-    .ix = index("abcdfg", .current$)
+    .ix = index("abcdefg", .current$)
     .value = if .ix then 9 + .ix else number (.current$) fi
     
     # Converting each digit of the pairs of numbers to decimal by using:
@@ -59,14 +61,19 @@ procedure hex2rgb (.hex$)
 endproc
 
 # Procedure to convert colours in RGB format (integers in the range 0 - 255) to
-# the color format expected by Praat. Input is the three RGB components, in
-# the order suggested by the acronym (eg. red, green, blue).
+# the colour format expected by Praat. Input is the three RGB components, in
+# the order suggested by the acronym (e.g. red, green, blue).
+#
+# The colour in the format required by Praat can be accessed with a reference to
+# ".color$", which can be used in any(?) of the commands that use colours. For
+# example, to change the colour of the pen in a Praat draw, you can use:
+#
+#     Colour: rgb2praat.color$
 # 
 procedure rgb2praat (.r, .g, .b)
   # Testing number format.
-  .rgb = .r + .g + .b
-  if .rgb < 0 or .rgb > 255
-    exitScript: "One of the provided values (red: '.r', green: '.g', blue: '.b')
+  if .r < 0 or .r > 255 or .g < 0 or .g > 255 or .b < 0 or .b > 255
+    exitScript: "One of the values provided to rgb2praat (red: '.r', green: '.g', blue: '.b')
       ... is either smaller than 0 or larger than 255.'newline$'"
   endif
 
@@ -78,14 +85,14 @@ procedure rgb2praat (.r, .g, .b)
 endproc
 
 # Procedure to convert hexadecimal colours (with or without initial hash) into
-# the color format expected by Praat. Input is the number as a string
+# the colour format expected by Praat. Input is the number as a string
 # (eg. "#9bcfab").
 # 
-# The color in the format required by praat can be accessed with a reference to
-# ".rgb$", which can be used in any(?) of the commands that use colors. For
+# The colour in the format required by Praat can be accessed with a reference to
+# ".color$", which can be used in any(?) of the commands that use colours. For
 # example, to change the colour of the pen in a Praat draw, you can use:
 #
-#     Colour: hex2praat.rgb$
+#     Colour: hex2praat.color$
 #
 procedure hex2praat (.hex$)
   @hex2rgb(.hex$)
