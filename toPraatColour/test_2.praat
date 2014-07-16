@@ -126,7 +126,6 @@ if save_palette
 	# Checking current version of Praat.
 	praat_version = praatVersion
 	praat_version$ = praatVersion$
-	appendInfoLine: praat_version, tab$, praat_version$
 	
 	# If current version of Praat is >= than 5369, the image is saved.
 	if praat_version >= 5369
