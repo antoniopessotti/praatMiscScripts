@@ -15,15 +15,15 @@
 # RGB colour codes (integers in the range 0 - 255). Input is the number as a
 # string (e.g. "#9bcfab").
 # 
-# The three components are stored in the local variables ".r", ".g" and ".b" for
-# the red, green and blue respectively. These variables can be used outside the
-# procedure via: "hex2rgb.r".
+# The three components are stored in the local variables ".r", ".g" and ".b"
+# for the red, green and blue respectively. These variables can be used outside
+# the procedure via: "hex2rgb.r".
 #
-procedure hex2rgb (.hex$)
+include hexadecimal.proc
+
+procedure hex2rgb: .hex$
   # Removing hash symbol, convert to lowercase, look for illegal characters and
   # query length of hexadecimal.
-  .hex$ = replace$ (.hex$, "#", "", 0)
-  .hex$ = replace_regex$ (.hex$, "(.)", "\L\1", 0)
   .has_illegal = index_regex (.hex$, "[^0-9abcdef]")
   .length = length (.hex$)
   
@@ -37,43 +37,35 @@ procedure hex2rgb (.hex$)
       ... instead of the required 6.'newline$'"
   endif
   
-  # Parsing hexadecimal string.
-  for .ch to 6
-    .current$ = mid$ (.hex$, .ch, 1)
-    
-    # Convert hexadecimal characters to decimals.
-    .ix = index("abcdefg", .current$)
-    .value = if .ix then 9 + .ix else number (.current$) fi
-    
-    # Converting each digit of the pairs of numbers to decimal by using:
-    # decimal * (16 ^ position). If the hexadecimal number is "F73", then the
-    # calculations would be: (15 * (16 ^ 2)) + (7 * (16 ^ 1)) + (3 * (16 ^ 0)).
-    # Notice that the hexadecimal colour contains 6 characters, but the three
-    # encoded colours come in pairs of 2. The values obtained are stored in a
-    # numerical array.
-    .prov_dec [.ch] = .value * (16 ^ (.ch mod 2))
+  # Parsing hexadecimal pairs
+  for .ch from 0 to 2
+    .i = 2 * .ch + 1
+    .current$ = mid$ (.hex$, .i, 2)
+    @parseHex(.current$)
+    .rgb[.ch+1] = parseHex.n
   endfor
 
-  # Adding decimal values for each pair to convert to RGB.
-  .r = (.prov_dec [1] + .prov_dec [2])
-  .g = (.prov_dec [3] + .prov_dec [4])
-  .b = (.prov_dec [5] + .prov_dec [6])
+  # Store color components
+  .r = .rgb[1]
+  .g = .rgb[2]
+  .b = .rgb[3]
 endproc
 
 # Procedure to convert colours in RGB format (integers in the range 0 - 255) to
 # the colour format expected by Praat. Input is the three RGB components, in
 # the order suggested by the acronym (e.g. red, green, blue).
 #
-# The colour in the format required by Praat can be accessed with a reference to
-# ".color$", which can be used in any(?) of the commands that use colours. For
-# example, to change the colour of the pen in a Praat draw, you can use:
+# The colour in the format required by Praat can be accessed with a reference
+# to ".color$", which can be used in any(?) of the commands that use colours.
+# For example, to change the colour of the pen in a Praat draw, you can use:
 #
 #     Colour: rgb2praat.color$
 # 
-procedure rgb2praat (.r, .g, .b)
+procedure rgb2praat: .r, .g, .b
   # Testing number format.
   if .r < 0 or .r > 255 or .g < 0 or .g > 255 or .b < 0 or .b > 255
-    exitScript: "One of the values provided to rgb2praat (red: '.r', green: '.g', blue: '.b')
+    exitScript: "One of the values provided to rgb2praat
+      ... (red: '.r', green: '.g', blue: '.b')
       ... is either smaller than 0 or larger than 255.'newline$'"
   endif
 
@@ -88,17 +80,132 @@ endproc
 # the colour format expected by Praat. Input is the number as a string
 # (eg. "#9bcfab").
 # 
-# The colour in the format required by Praat can be accessed with a reference to
-# ".color$", which can be used in any(?) of the commands that use colours. For
-# example, to change the colour of the pen in a Praat draw, you can use:
+# The colour in the format required by Praat can be accessed with a reference
+# to ".color$", which can be used in any(?) of the commands that use colours.
+# For example, to change the colour of the pen in a Praat draw, one could use:
 #
 #     Colour: hex2praat.color$
 #
-procedure hex2praat (.hex$)
+procedure hex2praat: .hex$
   @hex2rgb(.hex$)
   @rgb2praat(hex2rgb.r, hex2rgb.g, hex2rgb.b)
   .r = rgb2praat.r
   .g = rgb2praat.g
   .b = rgb2praat.b
   .color$ = rgb2praat.color$
+endproc
+
+# Procedure to convert in HSV format, with hue values in the 0 .. 360
+# range and saturation and intensity values in the 0 .. 1 range, into
+# the colour format expected by Praat. The procedure expects three separate
+# input values, for the hue, saturation and intensity values respectively.
+# 
+# The colour in the format required by Praat can be accessed with a reference
+# to ".color$", which can be used in any(?) of the commands that use colours.
+# For example, to change the colour of the pen in a Praat draw, one could use:
+#
+#     Colour: hsv2praat.color$
+#
+procedure hsv2praat: .h, .s, .v
+  @hsv2rgb(.h, .s, .v)
+  @rgb2praat(hsv2rgb.r, hsv2rgb.g, hsv2rgb.b)
+  .r = rgb2praat.r
+  .g = rgb2praat.g
+  .b = rgb2praat.b
+  .color$ = rgb2praat.color$
+endproc
+
+# Generate a number of evenly spaced colors with a consistent intensity.
+# 
+# The procedure must be called with the number of colors to generate,
+# and a saturation and intensity value to be used for all the generated colors.
+# The resulting colors will be accessible, as praat color strings, in the array
+# rainbow.colors$
+#
+procedure rainbow: .n, .s, .v
+   for .i to .n
+      .h = 360 / .n * .i
+      @hsv2praat(.h, .s, .v)
+      .colors$[.i] = hsv2praat.color$
+   endfor
+endproc
+
+# Procedure to convert colours in HSV format, with hue values in the 0 .. 360
+# range and saturation and intensity values in the 0 .. 1 range, to RGB colors
+# with components in the 0 .. 255 range.
+# 
+# The three components are stored in the local variables ".r", ".g" and ".b"
+# for the red, green and blue respectively.
+#
+procedure hsv2rgb: .h, .s, .v
+   .chroma = .s * .v;
+   .hprime = .h / 60;
+   .x = .chroma * (1 - abs((.hprime mod 2) - 1))
+
+   .r = 0
+   .g = 0
+   .b = 0
+   
+   if .hprime < 1
+      .r = .chroma
+      .g = .x
+   elif .hprime < 2
+      .r = .x
+      .g = .chroma
+   elif .hprime < 3
+      .g = .chroma
+      .b = .x
+   elif .hprime < 4
+      .g = .x
+      .b = .chroma
+   elif .hprime < 5
+      .r = .x
+      .b = .chroma
+   elif .hprime <= 6
+      .r = .chroma
+      .b = .x
+   else
+      printline W: Unexpected value at hsv2rgb: hprime = '.hprime'
+      .r = 0
+      .g = 0
+      .b = 0
+   endif
+   
+   .min = .v - .chroma
+
+   .r = round((.r + .min) * 255)
+   .g = round((.g + .min) * 255)
+   .b = round((.b + .min) * 255)
+endproc
+
+# Procedure to convert colours in in RGB format (integers in the range 0 - 255)
+# to colors in the HSV format, with hue values in the 0 .. 360 range and
+# saturation and intensity values in the 0 .. 1 range.
+# 
+# The three components are stored in the local variables ".h", ".s" and ".v"
+# for the hue, saturation and intensity values respectively.
+#
+procedure rgb2hsv: .r, .g, .b
+   .rprime = .r / 255
+   .gprime = .g / 255
+   .bprime = .b / 255
+   
+   .max = max(.rprime, .gprime, .bprime)
+   .min = min(.rprime, .gprime, .bprime)
+
+   .chroma = .max - .min
+   
+   if .max = .rprime
+      .h = number(fixed$(60 * (((.gprime - .bprime) / .chroma) mod 6), 3))
+   elif .max = .gprime
+      .h = number(fixed$(60 * ((.bprime - .rprime) / .chroma + 2), 3))
+   elif .max = .bprime
+      .h = number(fixed$(60 * ((.rprime - .gprime) / .chroma + 4), 3))
+   else
+      printline W: Unexpected value at rgb2hsv: max = '.max'
+      .h = 0
+   endif
+
+   .s = number(fixed$(if .chroma = 0 then 0 else .chroma / .max fi, 3))
+   .v = number(fixed$(.max, 3))
 endproc
