@@ -1,0 +1,122 @@
+# Procedures to convert to and from base-n numbers
+#
+# Author: Jose Joaquin Atria
+# Version: 1.0.0
+# Initial release: October 24, 2014
+#
+# This script is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+#
+# A copy of the GNU General Public License is available at
+# <http://www.gnu.org/licenses/>.
+
+# Parse a string as a hexadecimal number
+# The result is stored in .n
+#
+procedure hex2dec: .str$
+  # Normalize hexadecimal string: no leading hash, lowercase.
+  .hex$ = replace$ (.str$, "#", "", 0)
+
+  @n2dec(.hex$, 16)
+  .n = n2dec.n
+endproc
+
+# Parse a string as an octal number
+# The result is stored in .n
+#
+procedure oct2dec: .str$
+  @n2dec(.str$, 8)
+  .n = n2dec.n
+endproc
+
+# Parse a string as a binary number
+# The result is stored in .n
+#
+procedure bin2dec: .str$
+  @n2dec(.str$, 2)
+  .n = n2dec.n
+endproc
+
+# Parse an integer and return an hexadecimal string representation of it
+# The result is stored in .n$
+#
+procedure dec2hex: .int
+  @dec2n(.int$, 16)
+  .n$ = dec2n.n$
+endproc
+
+# Parse an integer and return an octal string representation of it
+# The result is stored in .n$
+#
+procedure dec2oct: .int
+  @dec2n(.int$, 8)
+  .n$ = dec2n.n$
+endproc
+
+# Parse an integer and return a binary string representation of it
+# The result is stored in .n$
+#
+procedure dec2bin: .int
+  @dec2n(.int$, 2)
+  .n$ = dec2n.n$
+endproc
+
+# Parse a string as an base-n number
+# The result is stored in .n
+#
+procedure n2dec: .str$, .base
+  if .base > 10
+    .abc$ = left$("abcdefghijklmnopqrstuvwxyz", .base - 10)
+  else
+    .abc$ = ""
+  endif
+  .num$ = "0123456789"
+  .digits$ = left$(.num$ + .abc$, .base)
+
+  .str$ = replace_regex$(.str$, "(.)", "\L\1", 0)
+
+  if index_regex (.hex$, "[^" + .digits$ + "]")
+      .n = undefined
+      appendInfoLine: "Not a valid base-", .base, " number: ", .str$
+  else
+    .len = length(.str$)
+    .n = 0
+    for .j from 0 to .len-1
+      .i = .len - .j
+      .c$ = mid$(.str$, .i, 1)
+      .ix = index(.abc$, .c$)
+      .value = if .ix then 9 + .ix else number (.c$) fi
+      .n += .value * (.base ^ .j)
+    endfor
+  endif
+endproc
+
+# Parse an integer and return a string representation of it in base-n
+# The result is stored in .n$
+#
+procedure dec2n: .arg, .base
+  if .arg mod 1
+    exitScript: "Non-integers not currently supported"
+  endif
+
+  .abc$ = "abcdefghijklmnopqrstuvwxyz"
+  .n$ = ""
+  repeat 
+    .div = .arg / .base
+    .int = floor(.div)
+    .rdr = .arg - (.int * .base)
+    if .base > 10 and .rdr > 9
+      .n$ = mid$(.abc$, .rdr - 9, 1) + .n$
+    else
+      .n$  = string$(.rdr) + .n$
+    endif
+    .arg = .int
+  until !.int
+endproc
+
+# For backwards compatibility
+procedure parseHex: .str$
+  @hex2dec(.str$)
+endproc
