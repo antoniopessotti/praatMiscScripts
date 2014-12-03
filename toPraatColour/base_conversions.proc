@@ -68,12 +68,12 @@ endproc
 #
 procedure n2dec: .str$, .base
   .digits$ = left$("0123456789abcdefghijklmnopqrstuvwxyz", .base)
+  .str$ = replace_regex$(.str$, "(.)", "\L\1", 0)
 
   if index_regex (.str$, "[^-" + .digits$ + ".]")
       .n = undefined
       appendInfoLine: "Not a valid base-", .base, " number: ", .str$
   else
-    .str$ = replace_regex$(.str$, "(.)", "\L\1", 0)
     if left$(.str$) = "-"
       .sign = -1
       .str$ = right$(.str$, length(.str$) - 1)
