@@ -22,9 +22,9 @@
 include base_conversions.proc
 
 procedure hex2rgb: .hex$
-  # Removing hash symbol, convert to lowercase, look for illegal characters and
-  # query length of hexadecimal.
-  .has_illegal = index_regex (.hex$, "[^0-9abcdef]")
+  # Look for illegal characters and query length of hexadecimal.
+  .hex$ = replace$ (.hex$, "#", "", 0)
+  .has_illegal = index_regex (.hex$, "[^0-9abcdefABCDEF]")
   .length = length (.hex$)
 
   # If problem is found from previous tests, terminate script.

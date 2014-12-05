@@ -142,4 +142,5 @@ endproc
 # For backwards compatibility
 procedure parseHex: .str$
   @n2dec(.str$, 16)
+  .n = n2dec.n
 endproc
